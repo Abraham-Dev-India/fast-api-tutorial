@@ -1,9 +1,11 @@
 from fastapi import FastAPI,Depends,status,Response,HTTPException
-from . import schemas
+from . import schemas,models
 import json
-from . import models
 from .database import engine,Sessionlocal
 from sqlalchemy.orm import Session
+from typing import List
+
+
 app = FastAPI()
 
 models.Base.metadata.create_all(engine)
@@ -30,9 +32,10 @@ def create(request:schemas.Blog,db:Session = Depends(get_db)):
     db.refresh(new_blog)
     return new_blog
 
-@app.get('/blog')
+@app.get('/blog',response_model = List[schemas.ShowBlog])
 def all(db:Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
+    schemas.ShowBlog.dict()
     return blogs
 
 @app.get('/blog/{id}',status_code=status.HTTP_200_OK,response_model=schemas.ShowBlog)
@@ -46,3 +49,11 @@ def getId(id,response: Response,db:Session = Depends(get_db)):
         response.status_code = status.HTTP_404_NOT_FOUND
         return {'Details:' + f"for given {id} is not found"}"""
     return blogs
+
+@app.post('/user',status_code=status.HTTP_201_CREATED)
+def createuser(request:schemas.User, db:Session = Depends(get_db)):
+    new_user = models.User(name = request.name,email = request.email, password = request.password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user

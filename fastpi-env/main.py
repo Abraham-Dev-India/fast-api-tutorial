@@ -18,7 +18,6 @@ def bloglist(published : bool = True , sort : Optional[bool] = False):
         return "Both are True"
 
 class Blog(BaseModel):
-    __tablename__ = 'blogs'
     title: str
     body: str
     published: Optional[bool]
